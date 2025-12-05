@@ -3,3 +3,35 @@ requires = [
   "setuptools >= 40.9.0",
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-dir]
+openpipeline_testutils = "."
+
+[project]
+name = "openpipeline_testutils"
+version = "0.1.0"
+description = "Various test utilities for openpipeline."
+requires-python = ">=3.8"
+authors = [
+    { name = "Dries Schaumont", email = "dries@data-intuitive.com" }
+]
+maintainers = [
+  { name = "Dries Schaumont", email = "dries@data-intuitive.com" }
+]
+license = "MIT"
+readme = {file = "README.md", content-type = "text/markdown"}
+dependencies = [
+    "pytest >= 6.2",
+    "mudata~=0.3.1", 
+    "anndata~=0.11.1"
+]
+
+[project.entry-points.pytest11]
+openpipeline_testutils = "openpipeline_testutils.fixtures"
+
+[tool.pytest.ini_options]
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+    "integration",
+]
