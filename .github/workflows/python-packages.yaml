@@ -27,7 +27,7 @@ jobs:
     - name: Install tox
       run: python -m pip install tox
 
-    - name: Run tox lint
+    - name: Run ruff
       run: |
         cd packages/python/${{ matrix.package }}
-        tox -e lint
+        tox -e ruff
