@@ -9,7 +9,7 @@ openpipeline_testutils = "."
 
 [project]
 name = "openpipeline_testutils"
-version = "0.1.0"
+version = "0.2.0"
 description = "Various test utilities for openpipeline."
 requires-python = ">=3.8"
 authors = [

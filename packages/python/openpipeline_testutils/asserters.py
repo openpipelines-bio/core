@@ -2,6 +2,7 @@ import mudata
 import anndata
 import pandas as pd
 import numpy as np
+from zarr.errors import GroupNotFoundError
 from scipy.sparse import issparse, spmatrix
 from mudata import MuData
 from pathlib import Path
@@ -10,12 +11,17 @@ from typing import Literal
 from .typing import AnnotationObjectOrPathLike
 from functools import singledispatch
 
+anndata.settings.zarr_write_format = 3
+
 
 def _read_if_needed(anndata_mudata_path_or_obj):
     if isinstance(anndata_mudata_path_or_obj, (str, Path)):
-        return mudata.read(
-            str(anndata_mudata_path_or_obj)
-        )  # TODO: remove when mudata fixes PAth bug
+        # TODO: remove when mudata fixes Path bug
+        anndata_mudata_path_str = str(anndata_mudata_path_or_obj)
+        try:
+            return mudata.read_zarr(anndata_mudata_path_str)
+        except (GroupNotFoundError, NotADirectoryError):
+            return mudata.read(anndata_mudata_path_str)  
     if isinstance(anndata_mudata_path_or_obj, (mudata.MuData, anndata.AnnData)):
         return anndata_mudata_path_or_obj.copy()
     raise AssertionError(
