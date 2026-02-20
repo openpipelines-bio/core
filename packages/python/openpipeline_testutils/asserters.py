@@ -3,7 +3,6 @@ import anndata
 import pandas as pd
 import numpy as np
 from zarr.errors import GroupNotFoundError
-from contextlib import contextmanager
 from scipy.sparse import issparse, spmatrix
 from mudata import MuData
 from pathlib import Path
