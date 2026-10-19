@@ -116,18 +116,9 @@ def zipped(tmp_path):
     return wrapper
 
 @pytest.mark.parametrize("storage_backend", ["zarr"])
-def test_read_anndata_zip(small_anndata_1_path, zipped):
-    output = read_annotated_array(zipped(small_anndata_1_path))
-    assert isinstance(output, ad.AnnData)
-
-@pytest.mark.parametrize("storage_backend", ["zarr"])
-def test_read_mudata_zip(small_mudata_path, zipped):
-    output = read_annotated_array(zipped(small_mudata_path), key="mod1")
-    assert isinstance(output, ad.AnnData)
-
-def test_read_spatialdata_zip_raises(small_spatialdata_path, zipped):
-    with pytest.raises(NotImplementedError):
-        read_annotated_array(zipped(small_spatialdata_path), key="table1")
+def test_read_zip_raises(small_anndata_1_path, zipped):
+    with pytest.raises(NotImplementedError, match="Zipped zarr stores are not supported"):
+        read_annotated_array(zipped(small_anndata_1_path))
 
 def test_read_non_zarr_directory_raises(tmp_path):
     with pytest.raises(RuntimeError, match="does not seem to provide zarr data"):

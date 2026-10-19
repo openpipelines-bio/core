@@ -4,7 +4,8 @@ import importlib
 import zipfile
 from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal
+from types import ModuleType
+from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
   import anndata
@@ -32,19 +33,9 @@ def _detect_format_h5(source: str | Path) -> Literal["MuData", "AnnData"]:
             return "MuData"
         raise RuntimeError(f"Could not detect format for H5 file '{source}'. Possible format are 'MuData' or 'AnnData'.")
 
-def _zarr_store(source: str | Path):
-    """
-    Return something that zarr (and anndata) can open: a ZipStore for
-    single-file zip stores, or the path itself for directory stores.
-    """
-    if zipfile.is_zipfile(source):
-        from zarr.storage import ZipStore
-        return ZipStore(source, mode="r")
-    return source
-
 def _detect_format_zarr(source: str | Path) -> Literal["MuData", "AnnData", "SpatialData"]:
     import zarr
-    open_zarr = zarr.open_group(_zarr_store(source), zarr_format=3, use_consolidated=False, mode="r")
+    open_zarr = zarr.open_group(source, zarr_format=3, use_consolidated=False, mode="r")
     group_attributes = open_zarr.metadata.attributes
     if "spatialdata_attrs" in group_attributes:
         return "SpatialData"
@@ -55,7 +46,7 @@ def _detect_format_zarr(source: str | Path) -> Literal["MuData", "AnnData", "Spa
     raise RuntimeError(f"Could not detect format for zarr file '{source}'. Possible format are 'MuData' or 'AnnData' or 'SpatialData'.")
 
 
-def _detect_format(source, storage_backend: Literal["h5", "zarr"]) -> Literal["AnnData", "MuData", "SpatialData"]:
+def _detect_format(source: str | Path, storage_backend: Literal["h5", "zarr"]) -> Literal["AnnData", "MuData", "SpatialData"]:
     HANDLERS = {
         "h5": _detect_format_h5,
         "zarr": _detect_format_zarr
@@ -77,14 +68,16 @@ def _detect_storage_backend(source: str | Path) -> Literal["zarr", "h5"]:
         if (source_path / "zarr.json").is_file():
             return "zarr"
         raise RuntimeError("A directory was provided, but it does not seem to provide zarr data.")
-    # zarr supports a single-file store, the ZipStore
     if zipfile.is_zipfile(source):
-        return "zarr"
+        raise NotImplementedError(
+            f"'{source}' is a zip file. Zipped zarr stores are not supported; "
+            "extract the archive and pass the directory instead."
+        )
     if _is_h5(source_path):
         return "h5"
     raise NotImplementedError("Could not determine if storage backend. If you wish to use a remote .zarr store, it is not supported.")
 
-def _import_optional(module_name: str):
+def _import_optional(module_name: str) -> ModuleType:
     try:
         return importlib.import_module(module_name)
     except ImportError as e:
@@ -92,20 +85,17 @@ def _import_optional(module_name: str):
         raise
 
 
-def _read_spatialdata(source: str | Path, key: str | None, **kwargs):
+def _read_spatialdata(source: str | Path, key: str | None, **kwargs: Any) -> anndata.AnnData:
     spatialdata = _import_optional("spatialdata")
     if key is None:
         raise ValueError("When reading a SpatialData object, `key` must be set to the name of a table.")
-    if zipfile.is_zipfile(source):
-        # spatialdata.read_zarr fails on zarr groups backed by a ZipStore.
-        raise NotImplementedError("Reading SpatialData from a zipped zarr store is not supported.")
     tables = spatialdata.read_zarr(source, **kwargs).tables
     if key not in tables:
         raise KeyError(f"Table '{key}' was not found in '{source}'. Available tables: {list(tables)}.")
     return tables[key]
 
 
-def _read_mudata_h5(source: str, key: str, **kwargs):
+def _read_mudata_h5(source: str, key: str, **kwargs: Any) -> anndata.AnnData:
     mudata = _import_optional("mudata")
     try:
         return mudata.read_h5ad(source, mod=key, **kwargs)
@@ -113,10 +103,10 @@ def _read_mudata_h5(source: str, key: str, **kwargs):
         raise KeyError(f"Modality '{key}' was not found in '{source}'.") from e
 
 
-def _read_mudata_zarr(source: str, key: str, **kwargs):
+def _read_mudata_zarr(source: str, key: str, **kwargs: Any) -> anndata.AnnData:
     import anndata
     import zarr
-    root = zarr.open_group(_zarr_store(source), mode="r")
+    root = zarr.open_group(source, mode="r")
     modalities = root["mod"]
     if not isinstance(modalities, zarr.Group):
         raise TypeError(f"Expected 'mod' to be a zarr group in '{source}'.")
@@ -128,7 +118,7 @@ def _read_mudata_zarr(source: str, key: str, **kwargs):
     return anndata.read_zarr(modality, **kwargs)
 
 
-def _read_mudata(source: str | Path, key: str | None, storage_backend: Literal["zarr", "h5"], **kwargs):
+def _read_mudata(source: str | Path, key: str | None, storage_backend: Literal["zarr", "h5"], **kwargs: Any) -> anndata.AnnData:
     if key is None:
         raise ValueError("When reading a MuData object, `key` must be set to the name of a modality.")
     source_str = str(source) # TODO: remove when mudata fixes Path bug
@@ -139,12 +129,12 @@ def _read_mudata(source: str | Path, key: str | None, storage_backend: Literal["
     return FORMAT_DISPATCHER[storage_backend](source_str, key, **kwargs)
 
 
-def _read_anndata(source: str | Path, key: str | None, storage_backend: Literal["zarr", "h5"], **kwargs):
+def _read_anndata(source: str | Path, key: str | None, storage_backend: Literal["zarr", "h5"], **kwargs: Any) -> anndata.AnnData:
     import anndata
     if key is not None:
         raise ValueError("When reading an AnnData object, `key` should not be set.")
     if storage_backend == "zarr":
-        return anndata.read_zarr(_zarr_store(source), **kwargs)
+        return anndata.read_zarr(source, **kwargs)
     return anndata.read_h5ad(source, **kwargs)
 
 
@@ -152,7 +142,7 @@ def _read(source: str | Path,
           data_format: Literal["MuData", "AnnData", "SpatialData"], 
           storage_backend: Literal["zarr", "h5"],
           key: str | None = None,
-          **kwargs) -> anndata.AnnData:
+          **kwargs: Any) -> anndata.AnnData:
     
     READERS = {
         "MuData": partial(_read_mudata, key = key, storage_backend=storage_backend),
@@ -162,7 +152,7 @@ def _read(source: str | Path,
     return READERS[data_format](source, **kwargs)
 
 
-def read_annotated_array(source: str | Path, key: str | None = None, **kwargs) -> anndata.AnnData:
+def read_annotated_array(source: str | Path, key: str | None = None, **kwargs: Any) -> anndata.AnnData:
     """
     Read an AnnData object from a variety of storage backends and data formats.
     Dependencies are not loaded until the time of reading the data so that only the 
