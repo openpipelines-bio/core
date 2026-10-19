@@ -95,6 +95,10 @@ def small_spatialdata_path(small_spatialdata, random_path):
     small_spatialdata.write(random_spatialdata)
     return random_spatialdata
 
+def test_read_annotated_array_is_exported():
+    import openpipeline_ioutils
+    assert openpipeline_ioutils.read_annotated_array is read_annotated_array
+
 def test_read_anndata(small_anndata_1_path):
     output = read_annotated_array(small_anndata_1_path)
     assert isinstance(output, ad.AnnData)
