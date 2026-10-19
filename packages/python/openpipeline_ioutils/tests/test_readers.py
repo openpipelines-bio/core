@@ -8,6 +8,7 @@ import geopandas as gpd
 import mudata as md
 import pandas as pd
 import pytest
+import zarr
 from shapely.geometry import Point
 from spatialdata import SpatialData
 from spatialdata.models import ShapesModel, TableModel
@@ -123,6 +124,11 @@ def zipped(tmp_path):
 def test_read_zip_raises(small_anndata_1_path, zipped):
     with pytest.raises(NotImplementedError, match="Zipped zarr stores are not supported"):
         read_annotated_array(zipped(small_anndata_1_path))
+
+def test_read_zarr_v2_raises(tmp_path):
+    zarr.open_group(tmp_path, mode="w", zarr_format=2)
+    with pytest.raises(RuntimeError, match="Only zarr v3 is supported"):
+        read_annotated_array(tmp_path)
 
 def test_read_non_zarr_directory_raises(tmp_path):
     with pytest.raises(RuntimeError, match="does not seem to provide zarr data"):

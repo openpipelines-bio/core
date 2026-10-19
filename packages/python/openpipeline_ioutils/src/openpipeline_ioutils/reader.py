@@ -64,7 +64,10 @@ def _detect_storage_backend(source: str | Path) -> Literal["zarr", "h5"]:
         raise FileNotFoundError(f"{source}: no such file or directory.")
     if source_path.is_dir():
         if (source_path / ".zgroup").is_file():
-            raise RuntimeError("Zarr v2 storage backends are not supported")
+            raise RuntimeError(
+                f"'{source}' is a zarr v2 store. Only zarr v3 is supported; "
+                "rewrite the data with zarr_format=3 (the default since anndata 0.13)."
+            )
         if (source_path / "zarr.json").is_file():
             return "zarr"
         raise RuntimeError("A directory was provided, but it does not seem to provide zarr data.")
