@@ -18,17 +18,17 @@ maintainers = [
 license = "MIT"
 readme = {file = "README.md", content-type = "text/markdown"}
 dependencies = [
-    "mudata",
     "anndata>=0.12.0",
-    "spatialdata"
+    "h5py",
+    "zarr>=3",
 ]
 
 [project.optional-dependencies]
-testing = [
-  "pandas-stubs",
-  "types-shapely",
-  "pytest",
-]
+all = ["mudata", "spatialdata"]
+
+[dependency-groups]
+test = ["pytest>=9", "geopandas", "shapely"]
+typecheck = [{include-group = "test"}, "mypy", "pandas-stubs", "types-shapely"]
 
 [tool.pytest]
 minversion = "9.0"

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import zipfile
 from functools import partial
 from pathlib import Path
@@ -83,8 +84,16 @@ def _detect_storage_backend(source: str | Path) -> Literal["zarr", "h5"]:
         return "h5"
     raise NotImplementedError("Could not determine if storage backend. If you wish to use a remote .zarr store, it is not supported.")
 
+def _import_optional(module_name: str):
+    try:
+        return importlib.import_module(module_name)
+    except ImportError as e:
+        e.add_note(f"Reading this file requires '{module_name}'.")
+        raise
+
+
 def _read_spatialdata(source: str | Path, key: str | None, **kwargs):
-    import spatialdata
+    spatialdata = _import_optional("spatialdata")
     if key is None:
         raise ValueError("When reading a SpatialData object, `key` must be set to the name of a table.")
     if zipfile.is_zipfile(source):
@@ -97,7 +106,7 @@ def _read_spatialdata(source: str | Path, key: str | None, **kwargs):
 
 
 def _read_mudata_h5(source: str, key: str, **kwargs):
-    import mudata
+    mudata = _import_optional("mudata")
     try:
         return mudata.read_h5ad(source, mod=key, **kwargs)
     except KeyError as e:

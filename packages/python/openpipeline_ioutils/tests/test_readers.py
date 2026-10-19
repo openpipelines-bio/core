@@ -8,10 +8,11 @@ import geopandas as gpd
 import mudata as md
 import pandas as pd
 import pytest
-from openpipeline_ioutils.reader import read_annotated_array
 from shapely.geometry import Point
 from spatialdata import SpatialData
 from spatialdata.models import ShapesModel, TableModel
+
+from openpipeline_ioutils.reader import read_annotated_array
 
 ad.settings.zarr_write_format = 3
 
