@@ -1,0 +1,47 @@
+[build-system]
+requires = [
+  "setuptools >= 40.9.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openpipeline_ioutils"
+version = "0.2.0"
+description = "IO utilities for openpipeline."
+requires-python = ">=3.11"
+authors = [
+    { name = "Dries Schaumont", email = "dries@data-intuitive.com" }
+]
+maintainers = [
+  { name = "Dries Schaumont", email = "dries@data-intuitive.com" }
+]
+license = "MIT"
+readme = {file = "README.md", content-type = "text/markdown"}
+dependencies = [
+    "mudata",
+    "anndata>=0.12.0",
+    "spatialdata"
+]
+
+[project.optional-dependencies]
+testing = [
+  "pandas-stubs",
+  "types-shapely",
+  "pytest",
+]
+
+[tool.pytest]
+minversion = "9.0"
+addopts = ["-ra", "-q"]
+testpaths = [
+    "tests",
+]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+# These dependencies do not ship type information (no py.typed marker).
+module = ["h5py", "h5py.*", "mudata", "mudata.*", "spatialdata", "spatialdata.*", "geopandas", "geopandas.*"]
+ignore_missing_imports = true

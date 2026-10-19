@@ -31,3 +31,30 @@ jobs:
       run: |
         cd packages/python/${{ matrix.package }}
         tox -e ruff
+
+  typecheck:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [openpipeline_ioutils]
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Using Python 3.11
+      uses: actions/setup-python@v6
+      with:
+        python-version: "3.11"
+
+    - name: Install tox
+      run: python -m pip install tox
+
+    - name: Run mypy
+      run: |
+        cd packages/python/${{ matrix.package }}
+        tox -e mypy
+
+    - name: Run ruff
+      run: |
+        cd packages/python/${{ matrix.package }}
+        tox -e ruff
