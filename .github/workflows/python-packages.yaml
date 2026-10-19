@@ -57,7 +57,7 @@ jobs:
         tox -e py
 
     - name: Run mypy
-      if: matrix.python-version == '3.11'
+      if: matrix.python-version == '3.14'
       run: |
         cd packages/python/${{ matrix.package }}
         tox -e mypy

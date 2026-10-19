@@ -49,5 +49,6 @@ disallow_untyped_defs = true
 
 [[tool.mypy.overrides]]
 # These dependencies do not ship type information (no py.typed marker).
-module = ["h5py", "h5py.*", "mudata", "mudata.*", "spatialdata", "spatialdata.*", "geopandas", "geopandas.*"]
+# anndata only ships it from 0.13 on, which requires Python >= 3.12.
+module = ["anndata", "anndata.*", "h5py", "h5py.*", "mudata", "mudata.*", "spatialdata", "spatialdata.*", "geopandas", "geopandas.*"]
 ignore_missing_imports = true
