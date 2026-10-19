@@ -1,16 +1,20 @@
-from .typing import AnnotationObject
-from typing import Union, Literal
+from __future__ import annotations
+
 from functools import reduce
+from itertools import product
 from operator import attrgetter
+from typing import Literal
+
 from anndata import AnnData
 from mudata import MuData
-from itertools import product
+
+from .typing import AnnotationObject
 
 
 def remove_annotation_column(
     annotation_object: AnnotationObject,
     column_names: list[str] | str,
-    axis: Union[Literal["obs"], Literal["var"], 0, 1],
+    axis: Literal["obs", "var"] | 0 | 1,
     modality_name: str | None = None,
 ):
     if isinstance(annotation_object, AnnData) and modality_name is not None:
