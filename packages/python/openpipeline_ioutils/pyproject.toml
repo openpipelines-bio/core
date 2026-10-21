@@ -1,0 +1,54 @@
+[build-system]
+requires = [
+  "setuptools >= 40.9.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openpipeline_ioutils"
+version = "0.1.0"
+description = "IO utilities for openpipeline."
+requires-python = ">=3.11"
+authors = [
+    { name = "Dries Schaumont", email = "dries@data-intuitive.com" }
+]
+maintainers = [
+  { name = "Dries Schaumont", email = "dries@data-intuitive.com" }
+]
+license = "MIT"
+readme = {file = "README.md", content-type = "text/markdown"}
+dependencies = [
+    "anndata>=0.12.1",
+    "h5py",
+    "zarr>=3",
+]
+
+[project.optional-dependencies]
+all = ["mudata", "spatialdata"]
+
+[dependency-groups]
+test = ["pytest>=9", "geopandas", "shapely"]
+typecheck = [{include-group = "test"}, "mypy", "pandas-stubs", "types-shapely"]
+
+[tool.pytest]
+minversion = "9.0"
+addopts = ["-ra", "-q"]
+testpaths = [
+    "tests",
+]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src", "tests"]
+# Also type check the bodies of functions without annotations (e.g. test fixtures).
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["openpipeline_ioutils", "openpipeline_ioutils.*"]
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+# These dependencies do not ship type information (no py.typed marker).
+# anndata only ships it from 0.13 on, which requires Python >= 3.12.
+module = ["anndata", "anndata.*", "h5py", "h5py.*", "mudata", "mudata.*", "spatialdata", "spatialdata.*", "geopandas", "geopandas.*"]
+ignore_missing_imports = true
