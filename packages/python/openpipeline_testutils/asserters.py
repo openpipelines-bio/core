@@ -1,15 +1,17 @@
-import mudata
-import anndata
-import pandas as pd
-import numpy as np
-from zarr.errors import GroupNotFoundError
-from scipy.sparse import issparse, spmatrix
-from mudata import MuData
-from pathlib import Path
-from pandas.testing import assert_frame_equal
-from typing import Literal
-from .typing import AnnotationObjectOrPathLike
 from functools import singledispatch
+from pathlib import Path
+from typing import Literal
+
+import anndata
+import mudata
+import numpy as np
+import pandas as pd
+from mudata import MuData
+from pandas.testing import assert_frame_equal
+from scipy.sparse import issparse, spmatrix
+from zarr.errors import GroupNotFoundError
+
+from .typing import AnnotationObjectOrPathLike
 
 anndata.settings.zarr_write_format = 3
 
@@ -21,11 +23,11 @@ def _read_if_needed(anndata_mudata_path_or_obj):
         try:
             return mudata.read_zarr(anndata_mudata_path_str)
         except (GroupNotFoundError, NotADirectoryError):
-            return mudata.read(anndata_mudata_path_str)  
+            return mudata.read(anndata_mudata_path_str)
     if isinstance(anndata_mudata_path_or_obj, (mudata.MuData, anndata.AnnData)):
         return anndata_mudata_path_or_obj.copy()
     raise AssertionError(
-        "Expected 'Path', 'str' to MuData/AnnData " "file or MuData/AnnData object."
+        "Expected 'Path', 'str' to MuData/AnnData file or MuData/AnnData object."
     )
 
 
@@ -73,7 +75,7 @@ def assert_mudata_modality_keys_equal(left, right):
     right_keys = set(right.mod.keys())
     if left_keys != right_keys:
         raise AssertionError(
-            "MuData modalities differ:" f"\n[left]:{left_keys}\n[right]:{right_keys}"
+            f"MuData modalities differ:\n[left]:{left_keys}\n[right]:{right_keys}"
         )
 
 
@@ -129,7 +131,7 @@ def _assert_frame_equal(
 
     if promote_precicion:
         left, right = _promote_dtypes(left, right)
-        assert_frame_equal(left, right, check_exact=False, atol=1e-3, *args, **kwargs)
+        assert_frame_equal(left, right, *args, check_exact=False, atol=1e-3, **kwargs)
     else:
         assert_frame_equal(left, right, *args, **kwargs)
 
@@ -155,9 +157,9 @@ def assert_annotation_frame_equal(
         _assert_frame_equal(
             left_frame,
             right_frame,
+            *args,
             sort=sort,
             promote_precicion=promote_precicion,
-            *args,
             **kwargs,
         )
     except AssertionError as e:
@@ -171,9 +173,9 @@ def assert_annotation_frame_equal(
                     annotation_attr,
                     modality,
                     right[mod_name],
+                    *args,
                     sort=sort,
                     promote_precicion=promote_precicion,
-                    *args,
                     **kwargs,
                 )
     except AssertionError as e:
@@ -190,12 +192,12 @@ def _assert_layer_equal(left, right):
                 "Layers format differ:"
                 f"\n[left]:{left.getformat()}\n[right]: {right.getformat()}"
             )
-        assert np.all(
-            left.indices == right.indices
-        ), "Layers differ: indices are not the same"
-        assert np.all(
-            left.indptr == right.indptr
-        ), "Layers differ: index pointers are not the same"
+        assert np.all(left.indices == right.indices), (
+            "Layers differ: indices are not the same"
+        )
+        assert np.all(left.indptr == right.indptr), (
+            "Layers differ: index pointers are not the same"
+        )
         np.testing.assert_allclose(
             left.data,
             right.data,
@@ -225,7 +227,7 @@ def assert_layers_equal(
     else:
         if right.raw:
             raise AssertionError(
-                "Layer .raw differs: " f"\n[left]:{left.raw}\n[right]:{right}"
+                f"Layer .raw differs: \n[left]:{left.raw}\n[right]:{right}"
             )
     if left.X is not None or right.X is not None:
         try:
@@ -236,7 +238,7 @@ def assert_layers_equal(
     if left.layers or right.layers:
         assert (right.layers is None and left.layers is None) or (
             left.layers.keys() == right.layers.keys()
-        ), "Available layers differ:" f"\n[left]:{left.layers}\n[right]:{right.layers}"
+        ), f"Available layers differ:\n[left]:{left.layers}\n[right]:{right.layers}"
         for layer_name, layer in left.layers.items():
             try:
                 _assert_layer_equal(layer, right.layers[layer_name])
@@ -276,9 +278,9 @@ def assert_multidimensional_annotation_equal(
         getattr(right, annotation_attr),
     )
     left_keys, right_keys = left_dict.keys(), right_dict.keys()
-    assert (
-        left_keys == right_keys
-    ), f"Keys of {annotation_attr} differ:\n[left]:{left_keys}\n[right]:{right_keys}"
+    assert left_keys == right_keys, (
+        f"Keys of {annotation_attr} differ:\n[left]:{left_keys}\n[right]:{right_keys}"
+    )
     for left_key, left_value in left_dict.items():
         try:
             _assert_multidimensional_value_equal(
