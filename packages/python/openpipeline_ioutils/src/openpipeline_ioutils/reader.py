@@ -31,7 +31,7 @@ def _detect_format_h5(source: str | Path) -> Literal["MuData", "AnnData"]:
             return "AnnData"
         if open_source.attrs.get("encoding-type") == "MuData":
             return "MuData"
-        raise RuntimeError(f"Could not detect format for H5 file '{source}'. Possible format are 'MuData' or 'AnnData'.")
+        raise RuntimeError(f"Could not detect format for H5 file '{source}'. Possible formats are 'MuData' or 'AnnData'.")
 
 def _detect_format_zarr(source: str | Path) -> Literal["MuData", "AnnData", "SpatialData"]:
     import zarr
@@ -54,7 +54,7 @@ def _detect_format(source: str | Path, storage_backend: Literal["h5", "zarr"]) -
     try:
         return HANDLERS[storage_backend](source)
     except KeyError:
-        raise ValueError(f"Backend {storage_backend} is not supported.")
+        raise ValueError(f"Backend {storage_backend} is not supported.") from None
         
 
 def _detect_storage_backend(source: str | Path) -> Literal["zarr", "h5"]:
@@ -78,7 +78,7 @@ def _detect_storage_backend(source: str | Path) -> Literal["zarr", "h5"]:
         )
     if _is_h5(source_path):
         return "h5"
-    raise NotImplementedError("Could not determine if storage backend. If you wish to use a remote .zarr store, it is not supported.")
+    raise NotImplementedError("Could not determine storage backend. If you wish to use a remote .zarr store, it is not supported.")
 
 def _import_optional(module_name: str) -> ModuleType:
     try:
