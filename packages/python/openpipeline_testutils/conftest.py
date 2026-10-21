@@ -1,6 +1,7 @@
 import importlib
-import pytest
 from pathlib import Path
+
+import pytest
 
 
 def pytest_collect_file(file_path: Path, parent):
