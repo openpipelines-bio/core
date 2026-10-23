@@ -70,7 +70,7 @@ def remove_annotation_column(
             axis_setter(
                 annotation_object,
                 axis_getter(annotation_object).drop(
-                    extra_cols_to_remove, axis="columns", inplace=False
+                    extra_cols_to_remove, axis="columns", inplace=False, errors="ignore"
                 ),
             )
 

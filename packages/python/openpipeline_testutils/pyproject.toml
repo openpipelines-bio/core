@@ -9,9 +9,9 @@ openpipeline_testutils = "."
 
 [project]
 name = "openpipeline_testutils"
-version = "0.2.0"
+version = "0.3.0"
 description = "Various test utilities for openpipeline."
-requires-python = ">=3.8"
+requires-python = ">=3.12"
 authors = [
     { name = "Dries Schaumont", email = "dries@data-intuitive.com" }
 ]
@@ -22,8 +22,9 @@ license = "MIT"
 readme = {file = "README.md", content-type = "text/markdown"}
 dependencies = [
     "pytest >= 6.2",
-    "mudata", 
-    "anndata"
+    "mudata~=0.4.0",
+    "anndata~=0.13.0",
+    "pandas>3,<3.1"
 ]
 
 [project.entry-points.pytest11]
